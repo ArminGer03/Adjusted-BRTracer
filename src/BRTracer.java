@@ -5,6 +5,15 @@ import property.Property;
 public class BRTracer {
 	public static void main(String[] args) {
         /* You need to manually specify three program arguments in Eclipse or Intellij before running */
+
+		args = new String[6];
+		args[0]="-d";
+		args[1]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/Dataset/";
+		args[2]="-p";
+		args[3]="eclipse";
+		args[4]="-o";
+		args[5]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/Result";
+
 		try {
 			if (args.length == 0) {
 				showHelp();
