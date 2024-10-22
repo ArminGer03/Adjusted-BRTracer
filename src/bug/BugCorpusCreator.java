@@ -39,62 +39,61 @@ public class BugCorpusCreator {
 
 	private ArrayList<Bug> parseXML() {
 		ArrayList<Bug> list = new ArrayList<Bug>();
-		DocumentBuilderFactory domFactory = DocumentBuilderFactory
-				.newInstance();
+		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
 		try {
+//			DocumentBuilder domBuilder = domFactory.newDocumentBuilder();
+//			InputStream is = new FileInputStream(Property.getInstance().getBugFilePath());
+//			Document doc = domBuilder.parse(is);
+//			Element root = doc.getDocumentElement();
+
 			DocumentBuilder domBuilder = domFactory.newDocumentBuilder();
-			InputStream is = new FileInputStream(Property.getInstance()
-					.getBugFilePath());
-			Document doc = domBuilder.parse(is);
+			InputStream is = new FileInputStream(Property.getInstance().getBugFilePath());
+
+			// Wrap the FileInputStream with the custom filter
+			InputStream filteredInputStream = new InvalidCharacterFilterInputStream(is);
+
+			// Parse the XML with the filtered input stream
+			Document doc = domBuilder.parse(filteredInputStream);
 			Element root = doc.getDocumentElement();
-			NodeList bugRepository = root.getChildNodes();
+
+			NodeList bugRepository = root.getElementsByTagName("table");
 			if (bugRepository != null) {
 				for (int i = 0; i < bugRepository.getLength(); i++) {
 					Node bugNode = bugRepository.item(i);
 					if (bugNode.getNodeType() == Node.ELEMENT_NODE) {
-						String bugId = bugNode.getAttributes()
-								.getNamedItem("id").getNodeValue();
-						String openDate = bugNode.getAttributes()
-								.getNamedItem("opendate").getNodeValue();
-						String fixDate = bugNode.getAttributes()
-								.getNamedItem("fixdate").getNodeValue();
+						NodeList columns = bugNode.getChildNodes(); // Parsing columns inside table
 						Bug bug = new Bug();
-						bug.setBugId(bugId);
-						bug.setOpenDate(openDate);
-						bug.setFixDate(fixDate);
-						for (Node node = bugNode.getFirstChild(); node != null; node = node
-								.getNextSibling()) {
-							if (node.getNodeType() == Node.ELEMENT_NODE) {
-								if (node.getNodeName().equals("buginformation")) {
-									NodeList _l = node.getChildNodes();
-									for (int j = 0; j < _l.getLength(); j++) {
-										Node _n = _l.item(j);
-										if (_n.getNodeName().equals("summary")) {
-											String summary = _n
-													.getTextContent();
-											bug.setBugSummary(summary);
-										}
 
-										if (_n.getNodeName().equals(
-												"description")) {
-											String description = _n
-													.getTextContent();
-											bug.setBugDescription(description);
-										}
+						// Loop over the column elements
+						for (int j = 0; j < columns.getLength(); j++) {
+							Node column = columns.item(j);
+							if (column.getNodeType() == Node.ELEMENT_NODE) {
+								String columnName = column.getAttributes().getNamedItem("name").getNodeValue();
+								String columnValue = column.getTextContent();
 
-									}
-
-								}
-								if (node.getNodeName().equals("fixedFiles")) {
-									NodeList _l = node.getChildNodes();
-									for (int j = 0; j < _l.getLength(); j++) {
-										Node _n = _l.item(j);
-										if (_n.getNodeName().equals("file")) {
-											String fileName = _n
-													.getTextContent();
-											bug.addFixedFile(fileName);
+								// Map XML columns to Bug fields
+								switch (columnName) {
+									case "bug_id":
+										bug.setBugId(columnValue);
+										break;
+									case "summary":
+										bug.setBugSummary(columnValue);
+										break;
+									case "description":
+										bug.setBugDescription(columnValue);
+										break;
+									case "report_time":
+										bug.setOpenDate(columnValue);
+										break;
+									case "commit_timestamp":
+										bug.setFixDate(columnValue);
+										break;
+									case "files":
+										String[] files = columnValue.split("\\n");
+										for (String file : files) {
+											bug.addFixedFile(file);
 										}
-									}
+										break;
 								}
 							}
 						}
@@ -107,6 +106,85 @@ public class BugCorpusCreator {
 		}
 		return list;
 	}
+//										todo add commit hash to bug if needed
+//									case "commit":
+//										bug.setCommit(columnValue); // Assuming this as a fix date
+//										break;
+//									case "result":
+//										bug.setResult(columnValue); // Add method in Bug if not present
+//										break;
+//									// Add cases for other new fields as needed
+
+//	private ArrayList<Bug> parseXML() {
+//		ArrayList<Bug> list = new ArrayList<Bug>();
+//		DocumentBuilderFactory domFactory = DocumentBuilderFactory
+//				.newInstance();
+//		try {
+//			DocumentBuilder domBuilder = domFactory.newDocumentBuilder();
+//			InputStream is = new FileInputStream(Property.getInstance()
+//					.getBugFilePath());
+//			Document doc = domBuilder.parse(is);
+//			Element root = doc.getDocumentElement();
+//			NodeList bugRepository = root.getChildNodes();
+//			if (bugRepository != null) {
+//				for (int i = 0; i < bugRepository.getLength(); i++) {
+//					Node bugNode = bugRepository.item(i);
+//					if (bugNode.getNodeType() == Node.ELEMENT_NODE) {
+//						String bugId = bugNode.getAttributes()
+//								.getNamedItem("id").getNodeValue();
+//						String openDate = bugNode.getAttributes()
+//								.getNamedItem("opendate").getNodeValue();
+//						String fixDate = bugNode.getAttributes()
+//								.getNamedItem("fixdate").getNodeValue();
+//						Bug bug = new Bug();
+//						bug.setBugId(bugId);
+//						bug.setOpenDate(openDate);
+//						bug.setFixDate(fixDate);
+//						for (Node node = bugNode.getFirstChild(); node != null; node = node
+//								.getNextSibling()) {
+//							if (node.getNodeType() == Node.ELEMENT_NODE) {
+//								if (node.getNodeName().equals("buginformation")) {
+//									NodeList _l = node.getChildNodes();
+//									for (int j = 0; j < _l.getLength(); j++) {
+//										Node _n = _l.item(j);
+//										if (_n.getNodeName().equals("summary")) {
+//											String summary = _n
+//													.getTextContent();
+//											bug.setBugSummary(summary);
+//										}
+//
+//										if (_n.getNodeName().equals(
+//												"description")) {
+//											String description = _n
+//													.getTextContent();
+//											bug.setBugDescription(description);
+//										}
+//
+//									}
+//
+//								}
+//								if (node.getNodeName().equals("fixedFiles")) {
+//									NodeList _l = node.getChildNodes();
+//									for (int j = 0; j < _l.getLength(); j++) {
+//										Node _n = _l.item(j);
+//										if (_n.getNodeName().equals("file")) {
+//											String fileName = _n
+//													.getTextContent();
+//											bug.addFixedFile(fileName);
+//										}
+//									}
+//								}
+//							}
+//						}
+//						list.add(bug);
+//					}
+//				}
+//			}
+//		} catch (Exception ex) {
+//			ex.printStackTrace();
+//		}
+//		return list;
+//	}
 
 	public void create() throws IOException {
 
@@ -118,7 +196,7 @@ public class BugCorpusCreator {
 		Property.getInstance().setBugReportCount(list.size());
 		if (!file.exists())
 			file.mkdir();
-		
+
 		for (Bug bug : list) {
 			writeCorpus(bug, dirPath);
 		}

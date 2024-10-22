@@ -6,13 +6,15 @@ public class BRTracer {
 	public static void main(String[] args) {
         /* You need to manually specify three program arguments in Eclipse or Intellij before running */
 
-		args = new String[6];
+		args = new String[8];
 		args[0]="-d";
 		args[1]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/Dataset/";
 		args[2]="-p";
-		args[3]="eclipse";
+		args[3]="swt";
 		args[4]="-o";
 		args[5]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/Result";
+		args[6]="-s";
+		args[7]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/BRTracer-Dataset/swt-3.1";
 
 		try {
 			if (args.length == 0) {
@@ -32,8 +34,9 @@ public class BRTracer {
 	private static void showHelp() {
 		String usage = "Usage:java -jar BRTracer [-options] \r\n\r\nwhere options must include:\r\n"
 				+ "-d	indicates the path of the dataset\r\n"
-				+ "-p	indicates which project to evaluate (available option: swt, eclipse, aspectj)\r\n"
-				+ "-o	indicates where to store the output file (require an absolute path name).";
+				+ "-p	indicates which project to evaluate (available option: jdt, swt, eclipse, aspectj)\r\n"
+				+ "-o	indicates where to store the output file (require an absolute path name).\r\n"
+				+ "-s	indicates the path of the source code.\r\n";
 
 		System.out.println(usage);
 	}
@@ -57,24 +60,32 @@ public class BRTracer {
 				i++;
 				outputFile = args[i];
 			}
+			else if (args[i].equals("-s")){
+				i++;
+				sourceCodeDir = args[i];
+			}
 			i++;
 		}
         if(projectStr.compareTo("eclipse")==0){
-            bugFilePath = datasetPath+"EclipseBugRepository.xml";
-            sourceCodeDir = datasetPath+"eclipse-3.1/";
+            bugFilePath = datasetPath+"Eclipse_Platform_UI.xml";
         }
         else if(projectStr.compareTo("swt")==0){
-            bugFilePath = datasetPath+"SWTBugRepository.xml";
-            sourceCodeDir = datasetPath+"swt-3.1/";
+            bugFilePath = datasetPath+"SWT.xml";
         }
+		else if(projectStr.compareTo("jdt")==0){
+			bugFilePath = datasetPath+"JDT.xml";
+		}
         else{
-            bugFilePath = datasetPath+"AspectJBugRepository.xml";
-            sourceCodeDir = datasetPath+"aspectj/";
+            bugFilePath = datasetPath+"AspectJ.xml";
         }
 		boolean isLegal = true;
 		if (datasetPath.equals("") || datasetPath == null) {
 			isLegal = false;
 			System.out.println("you must indicate the path of your dataset");
+		}
+		if (sourceCodeDir.equals("") || sourceCodeDir == null) {
+			isLegal = false;
+			System.out.println("you must indicate the path of your source code");
 		}
 		if (projectStr.equals("") || projectStr == null) {
 			isLegal = false;
