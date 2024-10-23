@@ -56,6 +56,16 @@ public class Evaluation {
 		new Evaluation().evaluate();
 	}
 
+	public String pathCompatibles(String input) {
+		String[] parts = input.split("/src/");
+
+		if (parts.length == 2) {
+			return parts[1].replace("/", ".");
+		}
+
+		return input;
+	}
+
 	public void evaluate() throws IOException {
 
 		BufferedReader VSMReader = new BufferedReader(new FileReader(workDir
@@ -71,6 +81,13 @@ public class Evaluation {
 		Integer top5 = 0;
 		Integer top10 = 0;
 
+		FileWriter writerNotFound = new FileWriter(Property.getInstance()
+				.getWorkDir()
+				+ Property.getInstance().getSeparator()
+				+ "FileNotFound.txt");
+
+		int fileNotFoundCounter = 0;
+
 		while (count < bugCount) {
 
 			count++;
@@ -83,7 +100,6 @@ public class Evaluation {
 
 			tmp_group = null;
 			float[] groupScore = getRelativeScore(vsmId);
-
 
 
 			for (String key : lenTable.keySet()) {
@@ -101,7 +117,6 @@ public class Evaluation {
 			}
 
 
-
 			vsmVector = normalize(vsmVector);
 			String graphLine = GraphReader.readLine();
 			String graphIdStr = graphLine.substring(0, graphLine.indexOf(";"));
@@ -113,7 +128,6 @@ public class Evaluation {
 
 
 			float[] finalR = combine(vsmVector, graphVector, alpha);
-
 
 
 			float[] finalscore = new float[originfilecount];
@@ -133,8 +147,7 @@ public class Evaluation {
 				if(scores.containsKey(id)){
 					ArrayList<Float> t = scores.get(id);
 					t.add(finalR[counter]);
-				}
-				else{
+				} else{
 					ArrayList<Float> t = new ArrayList<Float>();
 					t.add(finalR[counter]);
 					scores.put(id, t);
@@ -144,8 +157,7 @@ public class Evaluation {
 				ArrayList<Float> t = scores.get(i);
 				try{
 					Collections.sort(t, Collections.reverseOrder());
-				}
-				catch(Exception e){
+				} catch(Exception e){
 					System.out.println(i);
 					continue;
 				}
@@ -163,16 +175,21 @@ public class Evaluation {
 			TreeSet<String> fileSet = fixTable.get(vsmId);
 			Iterator<String> fileIt = fileSet.iterator();
 			Hashtable<Integer, String> fileIdTable = new Hashtable<Integer, String>();
+
 			while (fileIt.hasNext()) {
 				String fileName = fileIt.next();
+				fileName = pathCompatibles(fileName);
 				Integer fileId = idTable.get(fileName);
 				if(fileId==null || fileName==null){
-					System.out.println("null pointer");
-					System.out.println(fileName);
+					fileNotFoundCounter++;
+					writerNotFound.write(fileName
+							+ Property.getInstance().getLineSeparator());
+					writerNotFound.flush();
 					continue;
 				}
 				fileIdTable.put(fileId, fileName);
 			}
+
 			Integer tmploc = 0;
 			for (int i = 0; i < sort.length; i++) {
 				Rank rank = sort[i];
@@ -197,8 +214,7 @@ public class Evaluation {
 
 					writer.flush();
 					break;
-				}
-				else{
+				} else{
 					String filename = nameTable.get(rank.id);
 					tmploc += LOCTable.get(filename);
 				}
@@ -215,6 +231,11 @@ public class Evaluation {
 		Float top1f = (float)top1/Property.getInstance().getBugReportCount();
 		Float top5f = (float)top5/Property.getInstance().getBugReportCount();
 		Float top10f = (float)top10/Property.getInstance().getBugReportCount();
+		writerNotFound.close();
+		if (fileNotFoundCounter>0){
+			System.out.println(fileNotFoundCounter + " were not found, look FileNotFound.txt in tmp directory!");
+		}
+		System.out.println();
 		System.out.println("Top 1: " + top1f.toString());
 		System.out.println("Top 5: " + top5f.toString());
 		System.out.println("Top 10: " + top10f.toString());

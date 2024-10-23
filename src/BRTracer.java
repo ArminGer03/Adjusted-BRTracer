@@ -10,11 +10,11 @@ public class BRTracer {
 		args[0]="-d";
 		args[1]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/Dataset/";
 		args[2]="-p";
-		args[3]="swt";
+		args[3]="eclipse";
 		args[4]="-o";
 		args[5]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/Result";
 		args[6]="-s";
-		args[7]="/Users/armin/Desktop/UCI/bug-localization-project/Codes/Adjusted-BRTracer/BRTracer-Dataset/swt-3.1";
+		args[7]="/Users/armin/Desktop/platform/eclipse.platform.ui";
 
 		try {
 			if (args.length == 0) {
